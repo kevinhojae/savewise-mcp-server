@@ -17,6 +17,16 @@ const MCP_PATH = process.env.MCP_PATH || "/mcp";
 const app = express();
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log(`  Headers: ${JSON.stringify(req.headers)}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log(`  Body: ${JSON.stringify(req.body)}`);
+  }
+  next();
+});
+
 // Health check endpoint (no auth required)
 app.get("/healthz", (_req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
