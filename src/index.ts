@@ -120,14 +120,22 @@ app.post(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Handle SSE for streaming responses
+// Handle GET for SSE streaming - use the same MCP transport
 app.get(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
+  try {
+    const server = createMcpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+    });
 
-  // For now, just acknowledge the connection
-  res.write("data: {\"type\":\"connected\"}\n\n");
+    await server.connect(transport);
+    await transport.handleRequest(req, res);
+  } catch (error) {
+    console.error("MCP GET request error:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
 // Handle DELETE for session cleanup
