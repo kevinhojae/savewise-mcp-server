@@ -86,8 +86,8 @@ app.get("/authorize", (req: Request, res: Response) => {
   res.redirect(redirectUrl.toString());
 });
 
-// Token endpoint - exchange code for access token
-app.post("/token", (_req: Request, res: Response) => {
+// Token endpoint - exchange code for access token (support GET and POST)
+const handleToken = (_req: Request, res: Response) => {
   const expectedToken = process.env.MCP_BEARER_TOKEN;
 
   // Return the configured bearer token as the access token
@@ -97,7 +97,10 @@ app.post("/token", (_req: Request, res: Response) => {
     expires_in: 3600 * 24 * 365, // 1 year
     refresh_token: randomUUID(),
   });
-});
+};
+
+app.get("/token", handleToken);
+app.post("/token", handleToken);
 
 // MCP endpoint with authentication
 app.post(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
