@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 import express, { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpServer } from "./server.js";
 import { bearerAuth } from "./middleware/auth.js";
 
@@ -131,16 +132,49 @@ const handleToken = (_req: Request, res: Response) => {
 app.get("/token", handleToken);
 app.post("/token", handleToken);
 
-// MCP endpoint with authentication
+// Session management for MCP
+interface McpSession {
+  server: McpServer;
+  transport: StreamableHTTPServerTransport;
+  createdAt: number;
+}
+
+const sessions = new Map<string, McpSession>();
+
+// Clean up old sessions (older than 30 minutes)
+setInterval(() => {
+  const now = Date.now();
+  for (const [sessionId, session] of sessions) {
+    if (now - session.createdAt > 30 * 60 * 1000) {
+      sessions.delete(sessionId);
+      console.log(`Cleaned up session: ${sessionId}`);
+    }
+  }
+}, 5 * 60 * 1000);
+
+// MCP endpoint with session management
 app.post(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
   try {
-    const server = createMcpServer();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-    });
+    const sessionId = req.headers["mcp-session-id"] as string;
 
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+    let session = sessionId ? sessions.get(sessionId) : undefined;
+
+    if (!session) {
+      // Create new session
+      const newSessionId = randomUUID();
+      const server = createMcpServer();
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => newSessionId,
+      });
+
+      await server.connect(transport);
+
+      session = { server, transport, createdAt: Date.now() };
+      sessions.set(newSessionId, session);
+      console.log(`Created new session: ${newSessionId}`);
+    }
+
+    await session.transport.handleRequest(req, res, req.body);
   } catch (error) {
     console.error("MCP request error:", error);
     if (!res.headersSent) {
@@ -149,16 +183,28 @@ app.post(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Handle GET for SSE streaming - use the same MCP transport
+// Handle GET for SSE streaming
 app.get(MCP_PATH, bearerAuth, async (req: Request, res: Response) => {
   try {
-    const server = createMcpServer();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-    });
+    const sessionId = req.headers["mcp-session-id"] as string;
 
-    await server.connect(transport);
-    await transport.handleRequest(req, res);
+    let session = sessionId ? sessions.get(sessionId) : undefined;
+
+    if (!session) {
+      // Create new session for GET requests too
+      const newSessionId = randomUUID();
+      const server = createMcpServer();
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => newSessionId,
+      });
+
+      await server.connect(transport);
+
+      session = { server, transport, createdAt: Date.now() };
+      sessions.set(newSessionId, session);
+    }
+
+    await session.transport.handleRequest(req, res);
   } catch (error) {
     console.error("MCP GET request error:", error);
     if (!res.headersSent) {
