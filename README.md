@@ -1,0 +1,1 @@
+# savewise-mcp-server
