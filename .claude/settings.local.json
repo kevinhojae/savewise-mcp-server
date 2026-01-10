@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(pnpm run test:run)",
-      "Bash(curl -s -X POST http://localhost:8080/mcp -H \"Content-Type: application/json\" -d '{\"\"jsonrpc\"\":\"\"2.0\"\",\"\"method\"\":\"\"initialize\"\",\"\"params\"\":{\"\"protocolVersion\"\":\"\"2024-11-05\"\",\"\"capabilities\"\":{},\"\"clientInfo\"\":{\"\"name\"\":\"\"test\"\",\"\"version\"\":\"\"1.0.0\"\"}},\"\"id\"\":1}')"
+      "Bash(curl -s -X POST http://localhost:8080/mcp -H \"Content-Type: application/json\" -d '{\"\"jsonrpc\"\":\"\"2.0\"\",\"\"method\"\":\"\"initialize\"\",\"\"params\"\":{\"\"protocolVersion\"\":\"\"2024-11-05\"\",\"\"capabilities\"\":{},\"\"clientInfo\"\":{\"\"name\"\":\"\"test\"\",\"\"version\"\":\"\"1.0.0\"\"}},\"\"id\"\":1}')",
+      "Bash(export PATH=\"/Users/hojae/.fly/bin:$PATH\")",
+      "Bash(fly auth login)"
     ]
   }
 }
