@@ -33,9 +33,9 @@ app.get("/healthz", (_req: Request, res: Response) => {
 });
 
 // OAuth2 endpoints for Claude Code MCP authentication
-// OAuth server metadata
-app.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response) => {
-  const baseUrl = `${_req.protocol}://${_req.get("host")}`;
+// OAuth server metadata - support multiple path patterns
+const oauthMetadataHandler = (req: Request, res: Response) => {
+  const baseUrl = `https://${req.get("host")}`;
   res.json({
     issuer: baseUrl,
     authorization_endpoint: `${baseUrl}/authorize`,
@@ -46,7 +46,26 @@ app.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response
     code_challenge_methods_supported: ["S256"],
     token_endpoint_auth_methods_supported: ["none"],
   });
-});
+};
+
+app.get("/.well-known/oauth-authorization-server", oauthMetadataHandler);
+app.get("/.well-known/oauth-authorization-server/mcp", oauthMetadataHandler);
+app.get("/.well-known/openid-configuration", oauthMetadataHandler);
+app.get("/.well-known/openid-configuration/mcp", oauthMetadataHandler);
+app.get("/mcp/.well-known/openid-configuration", oauthMetadataHandler);
+
+// OAuth protected resource metadata
+const protectedResourceHandler = (req: Request, res: Response) => {
+  const baseUrl = `https://${req.get("host")}`;
+  res.json({
+    resource: `${baseUrl}/mcp`,
+    authorization_servers: [baseUrl],
+    bearer_methods_supported: ["header"],
+  });
+};
+
+app.get("/.well-known/oauth-protected-resource", protectedResourceHandler);
+app.get("/.well-known/oauth-protected-resource/mcp", protectedResourceHandler);
 
 // Dynamic client registration - support both GET and POST
 app.get("/register", (_req: Request, res: Response) => {
