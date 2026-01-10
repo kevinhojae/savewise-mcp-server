@@ -38,7 +38,15 @@ app.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response
   });
 });
 
-// Dynamic client registration
+// Dynamic client registration - support both GET and POST
+app.get("/register", (_req: Request, res: Response) => {
+  // Return registration endpoint info
+  res.json({
+    registration_endpoint: `${_req.protocol}://${_req.get("host")}/register`,
+    registration_endpoint_auth_methods_supported: ["none"],
+  });
+});
+
 app.post("/register", (_req: Request, res: Response) => {
   const clientId = randomUUID();
   res.status(201).json({

@@ -6,7 +6,11 @@
       "Bash(export PATH=\"/Users/hojae/.fly/bin:$PATH\")",
       "Bash(fly auth login)",
       "Bash(claude mcp remove readwise --scope user)",
-      "Bash(fly logs -a savewise-mcp-server-rough-snowflake-2726 --no-tail)"
+      "Bash(fly logs -a savewise-mcp-server-rough-snowflake-2726 --no-tail)",
+      "Bash(pnpm run build)",
+      "Bash(git add -A)",
+      "Bash(git commit -m \"Add GET /register endpoint for OAuth flow\")",
+      "Bash(git push)"
     ]
   }
 }
