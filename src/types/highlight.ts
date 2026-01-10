@@ -1,9 +1,17 @@
 import { z } from "zod";
 
 export const HighlightSchema = z.object({
-  text: z.string().describe("하이라이트 텍스트"),
-  title: z.string().describe("출처 제목 (예: 'Claude 대화 - 2024-01-10')"),
-  author: z.string().optional().describe("저자"),
+  text: z
+    .string()
+    .describe(
+      "하이라이트 본문. 하나의 개념/주제를 완결된 형태로 담아야 함. 권장 형식: 'X란? [정의]. [목적/이유]. [사용 시점]. [주의점].' 또는 'X하는 방법: 1)... 2)... 3)...'. 구체적인 기술명, 예시, 맥락 포함 권장."
+    ),
+  title: z
+    .string()
+    .describe(
+      "출처 제목. Claude 대화의 경우 'Claude 대화 - YYYY-MM-DD' 또는 주제명 사용"
+    ),
+  author: z.string().optional().describe("저자 (Claude 대화의 경우 생략 가능)"),
   source_url: z.string().optional().describe("출처 URL"),
   source_type: z.string().optional().describe("출처 타입 (article, book 등)"),
   category: z
@@ -11,7 +19,12 @@ export const HighlightSchema = z.object({
     .optional()
     .default("articles")
     .describe("카테고리 (books, articles, tweets 등)"),
-  note: z.string().optional().describe("메모"),
+  note: z
+    .string()
+    .optional()
+    .describe(
+      "추가 메모. 하이라이트의 맥락, 적용 계획, 관련 프로젝트 등을 기록"
+    ),
   location: z.number().optional().describe("위치"),
   location_type: z
     .string()
