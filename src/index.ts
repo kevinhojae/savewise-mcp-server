@@ -1,4 +1,10 @@
-import "dotenv/config";
+// Load dotenv only in development (not available in production)
+if (process.env.NODE_ENV !== "production") {
+  import("dotenv/config").catch(() => {
+    // dotenv not available, using environment variables directly
+  });
+}
+
 import express, { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
