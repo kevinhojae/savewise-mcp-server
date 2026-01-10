@@ -40,10 +40,15 @@ app.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response
 
 // Dynamic client registration - support both GET and POST
 app.get("/register", (_req: Request, res: Response) => {
-  // Return registration endpoint info
+  // Return a default client registration for GET requests
+  const clientId = randomUUID();
   res.json({
-    registration_endpoint: `${_req.protocol}://${_req.get("host")}/register`,
-    registration_endpoint_auth_methods_supported: ["none"],
+    client_id: clientId,
+    client_secret_expires_at: 0,
+    redirect_uris: [],
+    grant_types: ["authorization_code", "refresh_token"],
+    response_types: ["code"],
+    token_endpoint_auth_method: "none",
   });
 });
 
